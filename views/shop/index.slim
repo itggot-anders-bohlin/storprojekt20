@@ -6,3 +6,10 @@ p #{items}
     p #{el["price"]} kr
     p i lager: #{el["amount"]}
     a href="shop/cart" aaa
+
+
+form action="/shop/add" method="post"
+    input type="text" name="title" placeholder="grej"
+    input type="text" name="amount" placeholder="mängd"
+    input type="text" name="price" placeholder="pris"
+    input type="submit" value="lägg till"

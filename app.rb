@@ -70,11 +70,17 @@ get('/shop/index') do
     db = SQLite3::Database.new("db/storprojekt.db")
     db.results_as_hash = true
     result = db.execute("SELECT * FROM items")
-    if result != []
-        slim(:"shop/index", locals:{items:result})
-    else
-        slim(:error)
-    end
+    slim(:"shop/index", locals:{items:result})
+end
+
+post('/shop/add') do
+    db = SQLite3::Database.new("db/storprojekt.db")
+    db.results_as_hash = true
+    title=params["title"]
+    price=params["price"]
+    amount=params["amount"]
+    db.execute("INSERT INTO items(title, amount, price) VALUES (?,?,?)", [title, price, amount])
+    redirect('/shop/index')
 end
 
 
