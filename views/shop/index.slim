@@ -1,11 +1,12 @@
 h1 Välkommen #{session[:username]}
-p #{items}
-- items.each do |el| 
-    p hej
+a href="/shop/show" Till kundvagn
+- items.each do |el|
     h1 #{el["title"]}
     p #{el["price"]} kr
     p i lager: #{el["amount"]}
-    a href="shop/cart" aaa
+    form action="/shop/#{el["id"]}" method="post"
+        input type="submit" value="Lägg i kundvagn"
+    
 
 
 form action="/shop/add" method="post"

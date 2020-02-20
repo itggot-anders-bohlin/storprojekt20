@@ -1,0 +1,12 @@
+h1 Din kundvagn
+
+h2 Varor
+ul
+    - items.each do |el|
+        li #{el[0]["title"]} #{el[0]["price"]} kr
+        form action="/shop/show/#{el[0]["id"]}" method="post"
+            input type="submit" value="Ta bort från kundvagn"
+p Totalpris: #{total} kr
+
+a href="#" Betala
+
