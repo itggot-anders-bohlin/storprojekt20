@@ -100,20 +100,30 @@ end
 post('/shop/:id') do
     db = connect_to_db("db/storprojekt.db")
     item_id = params[:id].to_i
-    db.execute("INSERT INTO item_user_rel(item_id, user_id) VALUES (?,?)", [item_id, session[:user_id]])
+    amount = db.execute("SELECT amount FROM cart WHERE item_id = ? AND user_id = ?", [item_id, session[:user_id]])
+    if amount == []
+        db.execute("INSERT INTO cart(item_id, user_id, amount) VALUES (?,?,?)", [item_id, session[:user_id]], 1)
+    else
+        amount = amount[0]["amount"] + 1
+        db.execute("UPDATE cart SET amount = ? WHERE item_id = ? AND user_id = ?", [amount,  item_id, session[:user_id]])
+    end
     redirect('/shop/index')
 end
 
 get('/shop/show') do
     db = connect_to_db("db/storprojekt.db")
-    item = db.execute("SELECT item_id FROM item_user_rel WHERE user_id = ?", session[:user_id])
+    item = db.execute("SELECT item_id, amount FROM cart WHERE user_id = ?", session[:user_id])
     result = []
     totalprice = 0
     item.each do |el|
-        info = db.execute("SELECT * FROM items WHERE id = ?", el["item_id"])
-        totalprice = totalprice + info.first["price"].to_i
+        info = db.execute("SELECT title, price FROM items WHERE id = ?", el["item_id"])
+        info[0][:amount] = el["amount"]
+        totalprice = totalprice + (info.first["price"].to_i * el["amount"])
         result << info
+        p result
     end
+    p result
+
     slim(:"shop/show", locals:{items:result, total:totalprice})
 end
 
@@ -121,7 +131,7 @@ post('/shop/show/:id') do
     
     db = connect_to_db("db/storprojekt.db")
     item_id = params[:id].to_i
-    db.execute("DELETE FROM item_user_rel WHERE item_id = ? AND user_id = ?", [item_id, session[:user_id]])
+    db.execute("DELETE FROM cart WHERE item_id = ? AND user_id = ?", [item_id, session[:user_id]])
     redirect('/shop/show')
 end
 
