@@ -84,12 +84,11 @@ end
 get('/shop/index') do
     db = connect_to_db("db/storprojekt.db")
     admin =  db.execute("SELECT admin FROM users WHERE id = ?", session[:user_id])
-    p admin
     result = db.execute("SELECT * FROM items")
     slim(:"shop/index", locals:{items:result, admin:admin})
 end
 
-post('/shop/:id') do
+post('/shop/:id/add') do
     db = connect_to_db("db/storprojekt.db")
     item_id = params[:id].to_i
     amount = db.execute("SELECT amount FROM cart WHERE item_id = ? AND user_id = ?", [item_id, session[:user_id]])
@@ -109,6 +108,7 @@ get('/shop/show') do
     totalprice = 0
     item.each do |el|
         info = db.execute("SELECT * FROM items WHERE id = ?", el["item_id"])
+        p info[0]
         info[0][:amount] = el["amount"]
         totalprice = totalprice + (info.first["price"].to_i * el["amount"])
         result << info
@@ -122,7 +122,6 @@ post('/shop/show/:id') do
     item_id = params[:id].to_i
     db.execute("UPDATE cart SET amount = amount-1 WHERE item_id = ? AND user_id = ?", [item_id, session[:user_id]])
     amount = db.execute("SELECT amount FROM cart WHERE item_id = ? AND user_id = ?", [item_id, session[:user_id]])
-    p amount
     if amount[0]["amount"] == 0
         db.execute("DELETE FROM cart WHERE item_id = ? AND user_id = ?", [item_id, session[:user_id]])
     end
@@ -134,6 +133,7 @@ get('/shop/new') do
 end
 
 post('/shop/add') do
+    p "hej"
     db = connect_to_db("db/storprojekt.db")
     title=params["title"]
     price=params["price"]
@@ -147,17 +147,17 @@ post('/shop/update') do
     title=params["title"]
     price=params["price"]
     amount=params["amount"]
-    db.execute("UPDATE items SET title = ?, price = ?, amount = ?", [title, price, amount])
+    db.execute("UPDATE items SET price = ?, amount = ? WHERE title = ?", [price, amount, title])
     redirect('/shop/new')
 end
 
 post('/shop/delete') do
     db = connect_to_db("db/storprojekt.db")
     title=params["title"]
+    p "här är #{title}"
     db.execute("DELETE FROM items WHERE title = ?", title)
     redirect('/shop/new')
 end
-
 
 get('/error') do
     slim(:error)

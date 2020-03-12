@@ -4,23 +4,9 @@ a href="/shop/show" Till kundvagn
     h1 #{el["title"]}
     p #{el["price"]} kr
     p i lager: #{el["amount"]}
-    form action="/shop/#{el["id"]}" method="post"
+    form action="/shop/#{el["id"]}/add" method="post"
         input type="submit" value="Lägg i kundvagn"
 
 - if admin[0]["admin"] == 1
     a href="/shop/new" Gör ändringar
-    form action="/shop/add" method="post"
-        input type="text" name="title" placeholder="grej"
-        input type="text" name="amount" placeholder="mängd"
-        input type="text" name="price" placeholder="pris"
-        input type="submit" value="Lägg till"
-
-    form action="/shop/update" method="post"
-        input type="text" name="title" placeholder="grej"
-        input type="text" name="amount" placeholder="mängd"
-        input type="text" name="price" placeholder="pris"
-        input type="submit" value="Uppdatera"
-
-    form action="/shop/delete" method="post"
-        input type="text" name="title" placeholder="grej"
-        input type="submit" value="Ta bort vara"
+    
