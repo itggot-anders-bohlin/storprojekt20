@@ -8,5 +8,6 @@ ul
             input type="submit" value="Ta bort från kundvagn"
 p Totalpris: #{total} kr
 
-a href="#" Betala
+form action="/shop/order" method="post"
+    input type="submit" value="Slutför köp"
 

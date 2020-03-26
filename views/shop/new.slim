@@ -1,15 +1,5 @@
-form action="/shop/add" method="post"
-    input type="text" name="title" placeholder="grej"
-    input type="text" name="amount" placeholder="mängd"
-    input type="text" name="price" placeholder="pris"
-    input type="submit" value="Lägg till"
+h1 Välkommen till dina beställningar #{session[:username]}
 
-form action="/shop/update" method="post"
-    input type="text" name="title" placeholder="grej"
-    input type="text" name="amount" placeholder="mängd"
-    input type="text" name="price" placeholder="pris"
-    input type="submit" value="Uppdatera"
-
-form action="/shop/delete" method="post"
-    input type="text" name="title" placeholder="grej"
-    input type="submit" value="Ta bort vara"
+ul
+    - orders.each do |el|
+        li #{el["item_id"]}, #{el["amount"]}st

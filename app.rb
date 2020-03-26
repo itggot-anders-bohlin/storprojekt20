@@ -2,7 +2,7 @@ require 'sinatra'
 require 'slim'
 require 'BCrypt'
 require 'SQLite3'
-
+require_relative './model.rb'
 enable :sessions
 
 before do
@@ -11,20 +11,12 @@ before do
         redirect('/error')
    end
 end
-
-def connect_to_db(path)
-    db = SQLite3::Database.new("db/storprojekt.db")
-    db.results_as_hash = true
-    return db
-end
    
-
 get('/') do
     slim(:start)
 end
 
 get('/users/index') do
-
     slim(:"users/index")
 end
 
@@ -81,6 +73,12 @@ post('/login') do
     
 end
 
+before("/shop/:id") do
+    if session[:user_id] == nil
+        redirect('/error')
+    end
+end
+
 get('/shop/index') do
     db = connect_to_db("db/storprojekt.db")
     admin =  db.execute("SELECT admin FROM users WHERE id = ?", session[:user_id])
@@ -128,8 +126,34 @@ post('/shop/show/:id') do
     redirect('/shop/show')
 end
 
+post('/shop/order') do
+    db = connect_to_db("db/storprojekt.db")
+    result = db.execute("SELECT * FROM cart WHERE user_id = ?", session[:user_id])
+    p result
+    result.each do |el|
+        p el
+        p el["item_id"]
+        db.execute("INSERT INTO orders(user_id, item_id, amount) VALUES (?,?,?)", [session[:user_id], el["item_id"], el["amount"]])
+    end
+    db.execute("DELETE FROM cart WHERE user_id = ?", session[:user_id])
+    redirect('/shop/new')
+end
+
 get('/shop/new') do
-    slim(:"shop/new")
+    db = connect_to_db("db/storprojekt.db")
+    orders = db.execute("SELECT * FROM orders WHERE user_id = ?", session[:user_id])
+    p orders
+    orders.each do |el|
+        item = db.execute("SELECT title FROM items WHERE id = ?", el["item_id"])
+        el["item_id"] = item[0]["title"]
+    end
+    p orders
+    
+    slim(:"shop/new", locals:{orders:orders})
+end
+
+get('/shop/edit') do
+    slim(:"shop/edit")
 end
 
 post('/shop/add') do
@@ -138,8 +162,11 @@ post('/shop/add') do
     title=params["title"]
     price=params["price"]
     amount=params["amount"]
+    if title == ""
+        redirect('/shop/edit')
+    end
     db.execute("INSERT INTO items(title, price, amount) VALUES (?,?,?)", [title, price, amount])
-    redirect('/shop/new')
+    redirect('/shop/edit')
 end
 
 post('/shop/update') do
@@ -147,16 +174,21 @@ post('/shop/update') do
     title=params["title"]
     price=params["price"]
     amount=params["amount"]
+    if title == ""
+        redirect('/shop/edit')
+    end
     db.execute("UPDATE items SET price = ?, amount = ? WHERE title = ?", [price, amount, title])
-    redirect('/shop/new')
+    redirect('/shop/edit')
 end
 
 post('/shop/delete') do
     db = connect_to_db("db/storprojekt.db")
     title=params["title"]
-    p "här är #{title}"
+    if title == ""
+        redirect('/shop/new')
+    end
     db.execute("DELETE FROM items WHERE title = ?", title)
-    redirect('/shop/new')
+    redirect('/shop/edit')
 end
 
 get('/error') do
