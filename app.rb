@@ -21,30 +21,12 @@ get('/users/index') do
 end
 
 post('/create') do
-    db = connect_to_db("db/storprojekt.db")
+    
     username = params["username"]
     password = params["password"]
     confirm_password = params["confirm_password"]
-    result = db.execute("SELECT * FROM users WHERE username=?", username)
+    register_user(username, password, confirm_password)
 
-    if result.empty?
-        if password == confirm_password
-            password_digest = BCrypt::Password.create(password)
-            db.execute("INSERT INTO users(username, password, admin) VALUES (?,?,?)", [username, password_digest, 0])
-            result = db.execute("SELECT id FROM users WHERE username=?", [username])
-            session[:user_id] = result.first["id"]
-            
-            p "here is #{session[:user_id]}"
-            session[:username] = username
-            redirect('/register_confirmation')
-        else
-            redirect('/error')
-        end
-    else
-        redirect('/error')
-    end
-
-    redirect('/users/index')
 end
 
 get('/register_confirmation') do
@@ -59,18 +41,7 @@ post('/login') do
     db = connect_to_db("db/storprojekt.db")
     username = params["username"]
     password = params["password"]
-    result = db.execute("SELECT id, password FROM users WHERE username=?", [username])
-    if result.empty?
-        redirect('/error')
-    end
-    user_id = result.first["id"]
-    password_digest = result.first["password"]
-    if BCrypt::Password.new(password_digest) == password
-        session[:username] = username
-        session[:user_id] = user_id
-        redirect("/shop/index")
-    end
-    
+    login_user(username, password)
 end
 
 before("/shop/:id") do

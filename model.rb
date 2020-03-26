@@ -9,6 +9,38 @@ def connect_to_db(path)
     return db
 end
 
-def register_user()
+def register_user(username, password, confirm_password)
+    db = connect_to_db("db/storprojekt.db")
+    result = db.execute("SELECT * FROM users WHERE username=?", username)
+
+    if result.empty?
+        if password == confirm_password
+            password_digest = BCrypt::Password.create(password)
+            db.execute("INSERT INTO users(username, password, admin) VALUES (?,?,?)", [username, password_digest, 0])
+            result = db.execute("SELECT id FROM users WHERE username=?", [username])
+            session[:user_id] = result.first["id"]
+            session[:username] = username
+            redirect('/register_confirmation')
+        else
+            redirect('/error')
+        end
+    else
+        redirect('/error')
+    end
+end
+
+def login_user(username, password)
+    result = db.execute("SELECT id, password FROM users WHERE username=?", [username])
+    if result.empty?
+        redirect('/error')
+    end
+    user_id = result.first["id"]
+    password_digest = result.first["password"]
+    if BCrypt::Password.new(password_digest) == password
+        session[:username] = username
+        session[:user_id] = user_id
+        redirect("/shop/index")
+    end
     
 end
+
