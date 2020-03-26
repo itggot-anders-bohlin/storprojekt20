@@ -21,7 +21,6 @@ get('/users/index') do
 end
 
 post('/create') do
-    
     username = params["username"]
     password = params["password"]
     confirm_password = params["confirm_password"]
