@@ -1,3 +1,5 @@
+h1 Lager
+
 form action="/shop/add" method="post"
     input type="text" name="title" placeholder="grej"
     input type="text" name="amount" placeholder="mängd"
@@ -13,5 +15,12 @@ form action="/shop/update" method="post"
 form action="/shop/delete" method="post"
     input type="text" name="title" placeholder="grej"
     input type="submit" value="Ta bort vara"
+
+h1 Beställningar
+
+form action="/shop/deliver" method="post"
+    input type="text" name="user" placeholder="Användar id"
+    input type="text" name="order" placeholder="Beställnings id"
+    input type="submit" value="Levererat"
 
 a href="index" Tillbaka

@@ -6,10 +6,7 @@ require_relative './model.rb'
 enable :sessions
 
 before do
-    session[:user_id] = 1
-    if (session[:user_id] == nil) && (request.path_info != '/')
-        redirect('/error')
-   end
+   session[:user_id] = 1 #ta bort innan inlämning
 end
    
 get('/') do
@@ -45,6 +42,7 @@ end
 
 before("/shop/:id") do
     if session[:user_id] == nil
+        session[:error] = "Logga in för att se denna sida."
         redirect('/error')
     end
 end
@@ -101,8 +99,13 @@ post('/shop/order') do
     result = db.execute("SELECT * FROM cart WHERE user_id = ?", session[:user_id])
     p result
     result.each do |el|
-        p el
-        p el["item_id"]
+        stock = db.execute("SELECT amount FROM items WHERE id = ?", el["item_id"])
+        if stock[0]["amount"].to_i >= el["amount"].to_i
+            db.execute("UPDATE items SET amount = amount - ?", el["amount"])
+        else
+            session[:error] = "En av varorna du försöker beställa är tyvärr slut i lagret."
+            redirect('/error')
+        end
         db.execute("INSERT INTO orders(user_id, item_id, amount) VALUES (?,?,?)", [session[:user_id], el["item_id"], el["amount"]])
     end
     db.execute("DELETE FROM cart WHERE user_id = ?", session[:user_id])
@@ -112,12 +115,10 @@ end
 get('/shop/new') do
     db = connect_to_db("db/storprojekt.db")
     orders = db.execute("SELECT * FROM orders WHERE user_id = ?", session[:user_id])
-    p orders
     orders.each do |el|
         item = db.execute("SELECT title FROM items WHERE id = ?", el["item_id"])
         el["item_id"] = item[0]["title"]
     end
-    p orders
     
     slim(:"shop/new", locals:{orders:orders})
 end
@@ -127,7 +128,6 @@ get('/shop/edit') do
 end
 
 post('/shop/add') do
-    p "hej"
     db = connect_to_db("db/storprojekt.db")
     title=params["title"]
     price=params["price"]
@@ -158,6 +158,14 @@ post('/shop/delete') do
         redirect('/shop/new')
     end
     db.execute("DELETE FROM items WHERE title = ?", title)
+    redirect('/shop/edit')
+end
+
+post('/shop/deliver') do
+    db = connect_to_db("db/storprojekt.db")
+    user_id = params["user"]
+    order_id = params["order"]
+    db.execute("DELETE FROM orders WHERE user_id = ? AND id = ?", [user_id, order_id])
     redirect('/shop/edit')
 end
 

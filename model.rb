@@ -22,16 +22,20 @@ def register_user(username, password, confirm_password)
             session[:username] = username
             redirect('/register_confirmation')
         else
+            session[:error] = "Dina lösenord matchar inte"
             redirect('/error')
         end
     else
+        session[:error]="Det finns redan ett konto med detta användarnamn"
         redirect('/error')
     end
 end
 
 def login_user(username, password)
+    db = connect_to_db("db/storprojekt.db")
     result = db.execute("SELECT id, password FROM users WHERE username=?", [username])
     if result.empty?
+        session[:error] = "Det finns inget konto med detta användarnamn"
         redirect('/error')
     end
     user_id = result.first["id"]
