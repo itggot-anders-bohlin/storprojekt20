@@ -34,7 +34,6 @@ get('/users/new') do
 end
 
 post('/login') do
-    db = connect_to_db("db/storprojekt.db")
     username = params["username"]
     password = params["password"]
     login_user(username, password)
@@ -48,78 +47,34 @@ before("/shop/:id") do
 end
 
 get('/shop/index') do
-    db = connect_to_db("db/storprojekt.db")
-    admin =  db.execute("SELECT admin FROM users WHERE id = ?", session[:user_id])
-    result = db.execute("SELECT * FROM items")
-    slim(:"shop/index", locals:{items:result, admin:admin})
+    info = view_shop()
+    slim(:"shop/index", locals:{items:info[1], admin:info[0]})
 end
 
 post('/shop/:id/add') do
-    db = connect_to_db("db/storprojekt.db")
     item_id = params[:id].to_i
-    amount = db.execute("SELECT amount FROM cart WHERE item_id = ? AND user_id = ?", [item_id, session[:user_id]])
-    if amount == []
-        db.execute("INSERT INTO cart(item_id, user_id, amount) VALUES (?,?,?)", [item_id, session[:user_id]], 1)
-    else
-        amount = amount[0]["amount"] + 1
-        db.execute("UPDATE cart SET amount = ? WHERE item_id = ? AND user_id = ?", [amount,  item_id, session[:user_id]])
-    end
+    add_to_cart(item_id)
     redirect('/shop/index')
 end
 
 get('/shop/show') do
-    db = connect_to_db("db/storprojekt.db")
-    item = db.execute("SELECT item_id, amount FROM cart WHERE user_id = ?", session[:user_id])
-    result = []
-    totalprice = 0
-    item.each do |el|
-        info = db.execute("SELECT * FROM items WHERE id = ?", el["item_id"])
-        p info[0]
-        info[0][:amount] = el["amount"]
-        totalprice = totalprice + (info.first["price"].to_i * el["amount"])
-        result << info
-    end
-
-    slim(:"shop/show", locals:{items:result, total:totalprice})
+    info = view_cart()
+    slim(:"shop/show", locals:{items:info[0], total:info[1]})
 end
 
 post('/shop/show/:id') do
-    db = connect_to_db("db/storprojekt.db")
     item_id = params[:id].to_i
-    db.execute("UPDATE cart SET amount = amount-1 WHERE item_id = ? AND user_id = ?", [item_id, session[:user_id]])
-    amount = db.execute("SELECT amount FROM cart WHERE item_id = ? AND user_id = ?", [item_id, session[:user_id]])
-    if amount[0]["amount"] == 0
-        db.execute("DELETE FROM cart WHERE item_id = ? AND user_id = ?", [item_id, session[:user_id]])
-    end
+    remove_from_cart(item_id)
     redirect('/shop/show')
 end
 
 post('/shop/order') do
-    db = connect_to_db("db/storprojekt.db")
-    result = db.execute("SELECT * FROM cart WHERE user_id = ?", session[:user_id])
-    p result
-    result.each do |el|
-        stock = db.execute("SELECT amount FROM items WHERE id = ?", el["item_id"])
-        if stock[0]["amount"].to_i >= el["amount"].to_i
-            db.execute("UPDATE items SET amount = amount - ?", el["amount"])
-        else
-            session[:error] = "En av varorna du försöker beställa är tyvärr slut i lagret."
-            redirect('/error')
-        end
-        db.execute("INSERT INTO orders(user_id, item_id, amount) VALUES (?,?,?)", [session[:user_id], el["item_id"], el["amount"]])
-    end
-    db.execute("DELETE FROM cart WHERE user_id = ?", session[:user_id])
+    add_to_order()
     redirect('/shop/new')
 end
 
 get('/shop/new') do
-    db = connect_to_db("db/storprojekt.db")
-    orders = db.execute("SELECT * FROM orders WHERE user_id = ?", session[:user_id])
-    orders.each do |el|
-        item = db.execute("SELECT title FROM items WHERE id = ?", el["item_id"])
-        el["item_id"] = item[0]["title"]
-    end
-    
+    orders = view_orders()
     slim(:"shop/new", locals:{orders:orders})
 end
 
@@ -128,44 +83,40 @@ get('/shop/edit') do
 end
 
 post('/shop/add') do
-    db = connect_to_db("db/storprojekt.db")
     title=params["title"]
     price=params["price"]
     amount=params["amount"]
     if title == ""
         redirect('/shop/edit')
     end
-    db.execute("INSERT INTO items(title, price, amount) VALUES (?,?,?)", [title, price, amount])
+    add_to_shop(title, price, amount)
     redirect('/shop/edit')
 end
 
 post('/shop/update') do
-    db = connect_to_db("db/storprojekt.db")
     title=params["title"]
     price=params["price"]
     amount=params["amount"]
     if title == ""
         redirect('/shop/edit')
     end
-    db.execute("UPDATE items SET price = ?, amount = ? WHERE title = ?", [price, amount, title])
+    update_shop(title, price, amount)
     redirect('/shop/edit')
 end
 
 post('/shop/delete') do
-    db = connect_to_db("db/storprojekt.db")
-    title=params["title"]
+    title = params["title"]
     if title == ""
         redirect('/shop/new')
     end
-    db.execute("DELETE FROM items WHERE title = ?", title)
+    delete_from_shop(title)
     redirect('/shop/edit')
 end
 
 post('/shop/deliver') do
-    db = connect_to_db("db/storprojekt.db")
     user_id = params["user"]
     order_id = params["order"]
-    db.execute("DELETE FROM orders WHERE user_id = ? AND id = ?", [user_id, order_id])
+    deliver(user_id, order_id)
     redirect('/shop/edit')
 end
 
