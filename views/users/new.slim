@@ -1,4 +1,11 @@
-form action="/login" method="post"
-    input type="text" name="username" placeholder="username"
-    input type="password" name="password" placeholder="password"
-    input type="submit" value="Logga in"
+- if session[:error] != "Du har försökt för många lösenord på för kort tid, vänta 5 sekunder"
+    form action="/login" method="post"
+        input type="text" name="username" placeholder="username"
+        input type="password" name="password" placeholder="password"
+        input type="submit" value="Logga in"
+- else
+    p #{session[:error]}
+    meta http-equiv="refresh" content="5; /"
+
+- if session[:error] == "Fel lösenord" || session[:error] == "Det finns inget konto med detta användarnamn"
+    p #{session[:error]}

@@ -4,12 +4,13 @@ require 'BCrypt'
 require 'SQLite3'
 require_relative './model.rb'
 enable :sessions
-
+timearray = []
 before do
    session[:user_id] = 1 #ta bort innan inlämning
 end
    
 get('/') do
+    session[:error] = nil
     slim(:start)
 end
 
@@ -22,7 +23,6 @@ post('/create') do
     password = params["password"]
     confirm_password = params["confirm_password"]
     register_user(username, password, confirm_password)
-
 end
 
 get('/register_confirmation') do
@@ -36,8 +36,11 @@ end
 post('/login') do
     username = params["username"]
     password = params["password"]
-    login_user(username, password)
+    
+    login_user(username, password, timearray)
 end
+
+
 
 before("/shop/:id") do
     if session[:user_id] == nil

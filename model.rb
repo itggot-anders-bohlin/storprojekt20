@@ -31,12 +31,12 @@ def register_user(username, password, confirm_password)
     end
 end
 
-def login_user(username, password)
+def login_user(username, password, timearray)
     db = connect_to_db("db/storprojekt.db")
     result = db.execute("SELECT id, password FROM users WHERE username=?", [username])
     if result.empty?
         session[:error] = "Det finns inget konto med detta användarnamn"
-        redirect('/error')
+        redirect("/users/new")
     end
     user_id = result.first["id"]
     password_digest = result.first["password"]
@@ -44,9 +44,24 @@ def login_user(username, password)
         session[:username] = username
         session[:user_id] = user_id
         redirect("/shop/index")
+    else
+        session[:error] = "Fel lösenord"
+        timearray << Time.now.to_i
+        if timearray.length > 4 
+            if Time.now.to_i - timearray[0] < 10
+                time = Time.now.to_i
+                session[:error] = "Du har försökt för många lösenord på för kort tid, vänta 5 sekunder"
+                redirect("/users/new")
+            end
+            
+            timearray.shift
+        end
+        
+        redirect("/users/new")
     end
     
 end
+
 
 def view_shop()
     db = connect_to_db("db/storprojekt.db")
