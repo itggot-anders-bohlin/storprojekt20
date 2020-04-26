@@ -10,7 +10,6 @@ before do
 end
    
 get('/') do
-    session[:error] = nil
     slim(:start)
 end
 
@@ -36,7 +35,6 @@ end
 post('/login') do
     username = params["username"]
     password = params["password"]
-    
     login_user(username, password, timearray)
 end
 

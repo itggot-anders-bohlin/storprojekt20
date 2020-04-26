@@ -52,6 +52,7 @@ def login_user(username, password, timearray)
                 time = Time.now.to_i
                 session[:error] = "Du har försökt för många lösenord på för kort tid, vänta 5 sekunder"
                 redirect("/users/new")
+                timearray = []
             end
             
             timearray.shift

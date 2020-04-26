@@ -5,7 +5,8 @@
         input type="submit" value="Logga in"
 - else
     p #{session[:error]}
-    meta http-equiv="refresh" content="5; /"
+    - session[:error] = nil
+    meta http-equiv="refresh" content="5; /users/new"
 
 - if session[:error] == "Fel lösenord" || session[:error] == "Det finns inget konto med detta användarnamn"
     p #{session[:error]}
