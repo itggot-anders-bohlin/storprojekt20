@@ -11,6 +11,7 @@ module Model
 
     # Registers a user 
     #
+    # @return [Array] url, sessions
     def register_user(username, password, confirm_password)
         db = connect_to_db("db/storprojekt.db")
         result = db.execute("SELECT * FROM users WHERE username=?", username)
@@ -20,49 +21,41 @@ module Model
                 password_digest = BCrypt::Password.create(password)
                 db.execute("INSERT INTO users(username, password, admin) VALUES (?,?,?)", [username, password_digest, 0])
                 result = db.execute("SELECT id FROM users WHERE username=?", [username])
-                session[:user_id] = result.first["id"]
-                session[:username] = username
-                redirect('/register_confirmation')
+                return '/register_confirmation', result.first["id"], username
             else
-                session[:error] = "Dina lösenord matchar inte"
-                redirect('/error')
+                return '/error', "Dina lösenord matchar inte"
             end
         else
-            session[:error]="Det finns redan ett konto med detta användarnamn"
-            redirect('/error')
+            return '/error', "Det finns redan ett konto med detta användarnamn"
         end
     end
 
     # logs a user in
     #
+    # @return [Array] url, sessions
     def login_user(username, password, timearray)
         db = connect_to_db("db/storprojekt.db")
         result = db.execute("SELECT id, password FROM users WHERE username=?", [username])
         if result.empty?
-            session[:error] = "Det finns inget konto med detta användarnamn"
-            redirect("/users/new")
+            return '/users/new', "Det finns inget konto med detta användarnamn"
         end
         user_id = result.first["id"]
         password_digest = result.first["password"]
         if BCrypt::Password.new(password_digest) == password
-            session[:username] = username
-            session[:user_id] = user_id
-            redirect("/shop/index")
+            return '/shop/index', user_id, username
         else
-            session[:error] = "Fel lösenord"
             timearray << Time.now.to_i
             if timearray.length > 4 
                 if Time.now.to_i - timearray[0] < 10
                     time = Time.now.to_i
-                    session[:error] = "Du har försökt för många lösenord på för kort tid, vänta 5 sekunder"
-                    redirect("/users/new")
                     timearray = []
+                    return '/users/new', "Du har försökt för många lösenord på för kort tid, vänta 5 sekunder"
                 end
                 
                 timearray.shift
             end
             
-            redirect("/users/new")
+            return '/users/new', "Fel lösenord"
         end
         
     end

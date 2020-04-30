@@ -30,7 +30,15 @@ post('/create') do
     username = params["username"]
     password = params["password"]
     confirm_password = params["confirm_password"]
-    register_user(username, password, confirm_password)
+    info = register_user(username, password, confirm_password)
+    p info
+    if info[0] == '/register_confirmation'
+        session[:user_id] = info[1]
+        session[:username] = info[2]
+    else
+        session[:error] = info[1]
+    end
+    redirect(info[0])
 end
 
 # Display page that confirms registration of an account
@@ -54,7 +62,14 @@ end
 post('/login') do
     username = params["username"]
     password = params["password"]
-    login_user(username, password, timearray)
+    info = login_user(username, password, timearray)
+    if info[0] == '/shop/index'
+        session[:user_id] = info[1]
+        session[:username] = info[2]
+    else
+        session[:error] = info[1]
+    end
+    redirect(info[0])
 end
 
 #Checks to see that a user is logged in before accessing sites that they shouldn't
