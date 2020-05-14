@@ -26,7 +26,7 @@ end
 # @param [String] confirm_password, a confirmation of the user's password
 #
 # @see Model#register_user
-post('/create') do
+post('/users') do
     username = params["username"]
     password = params["password"]
     confirm_password = params["confirm_password"]
@@ -93,7 +93,7 @@ end
 # @param [Integer] :id, the id of the item
 # 
 # @see Model#add_to_cart
-post('/shop/:id/add') do
+post('/cart/:id') do
     item_id = params[:id].to_i
     add_to_cart(item_id)
     redirect('/shop/index')
@@ -112,7 +112,7 @@ end
 # @param [Integer] :id, the id of the item
 #
 # @see Model#remove_from_cart
-post('/shop/show/:id') do
+post('/shop/:id/delete') do
     item_id = params[:id].to_i
     remove_from_cart(item_id)
     redirect('/shop/show')
@@ -121,7 +121,7 @@ end
 # Adds all the items in your cart to your orders and redirects to '/shop/new'
 #
 # @see Model#add_to_order
-post('/shop/order') do
+post('/order') do
     add_to_order()
     redirect('/shop/new')
 end
@@ -147,7 +147,7 @@ end
 # @param [Integer] amount, the amount of the item
 #
 # @see Model#add_to_shop
-post('/shop/add') do
+post('/shop') do
     title=params["title"]
     price=params["price"]
     amount=params["amount"]
@@ -196,7 +196,7 @@ end
 # @param [Integer] order, the order that has been delivered.
 #
 # @see Model#deliver
-post('/shop/deliver') do
+post('/deliver') do
     user_id = params["user"]
     order_id = params["order"]
     deliver(user_id, order_id)

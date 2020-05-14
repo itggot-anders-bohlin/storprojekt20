@@ -4,10 +4,10 @@ h2 Varor
 ul
     - items.each do |el|
         li #{el[0]["title"]} #{el[0]["price"]} kr mängd: #{el[0][:amount]}
-        form action="/shop/show/#{el[0]["id"]}" method="post"
+        form action="/shop/#{el[0]["id"]}/delete" method="post"
             input type="submit" value="Ta bort från kundvagn"
 p Totalpris: #{total} kr
 
-form action="/shop/order" method="post"
+form action="/order" method="post"
     input type="submit" value="Slutför köp"
 

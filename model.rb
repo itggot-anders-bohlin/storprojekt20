@@ -37,7 +37,7 @@ module Model
         db = connect_to_db("db/storprojekt.db")
         result = db.execute("SELECT id, password FROM users WHERE username=?", [username])
         if result.empty?
-            return '/users/new', "Det finns inget konto med detta användarnamn"
+            return '/users/index', "Det finns inget konto med detta användarnamn"
         end
         user_id = result.first["id"]
         password_digest = result.first["password"]

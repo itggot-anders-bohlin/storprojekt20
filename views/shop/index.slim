@@ -4,7 +4,7 @@ a href="/shop/show" Till kundvagn
     h1 #{el["title"]}
     p #{el["price"]} kr
     p i lager: #{el["amount"]}
-    form action="/shop/#{el["id"]}/add" method="post"
+    form action="/cart/#{el["id"]}" method="post"
         input type="submit" value="Lägg i kundvagn"
 
 - if admin[0]["admin"] == 1
