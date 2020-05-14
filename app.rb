@@ -31,7 +31,6 @@ post('/create') do
     password = params["password"]
     confirm_password = params["confirm_password"]
     info = register_user(username, password, confirm_password)
-    p info
     if info[0] == '/register_confirmation'
         session[:user_id] = info[1]
         session[:username] = info[2]
